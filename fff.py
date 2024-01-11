@@ -18,8 +18,14 @@ def check_errors(text):
 
     ignored_words = set()
     for word in text.split():
-        if word.istitle() or any(c.isdigit() for c in word):
+        if any(c.isdigit() for c in word):
             ignored_words.add(word.lower())
+
+    lowercased_text = ' '.join(word.lower() if not word[0].isupper() else word for word in text.split())
+
+    words = [word for word in lowercased_text.split() if word.lower() not in ignored_words]
+    nonexistent_words_copy = spell.unknown(words)
+    grammar_errors = tool.check(lowercased_text)
 
     text = re.sub(r'(?<=\w)([^\w\s]+)', '', text)
 
@@ -29,9 +35,10 @@ def check_errors(text):
     nonexistent_words = []
     filtered_grammar_errors = []
     for error in grammar_errors:
-        if not error.replacements:
+        if not error.replacements: #or (len(str(error.replacements[0]).replace(str(error), '')) >2 or len(str(error).replace(str(error.replacements[0]), ''))>2):
             continue
         filtered_grammar_errors.append(error)
+
 
     for word in nonexistent_words_copy:
         if spell.candidates(word):
