@@ -23,13 +23,20 @@ def check_errors(text):
 
     text = re.sub(r'(?<=\w)([^\w\s]+)', '', text)
 
-
     words = [word for word in text.split() if word.lower() not in ignored_words]
-    nonexistent_words = spell.unknown(words)
-
-
+    nonexistent_words_copy = spell.unknown(words)
     grammar_errors = tool.check(text)
-    filtered_grammar_errors = [error for error in grammar_errors if error.offset not in [m.offset for w in nonexistent_words for m in tool.check(w)]]
+    nonexistent_words = []
+    filtered_grammar_errors = []
+    for error in grammar_errors:
+        if not error.replacements:
+            continue
+        filtered_grammar_errors.append(error)
+
+    for word in nonexistent_words_copy:
+        if spell.candidates(word):
+            continue
+        nonexistent_words.append(word)
 
     return nonexistent_words, filtered_grammar_errors
 
