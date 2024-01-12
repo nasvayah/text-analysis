@@ -23,12 +23,6 @@ def check_errors(text1):
     tool = language_tool_python.LanguageTool('ru-RU')
 
     spell = SpellChecker(language='ru')
-
-    custom_dictionary_file = "vocab.txt"
-    with open(custom_dictionary_file, "r", encoding="utf-8") as file:
-        custom_dictionary = set(
-            word.strip() for word in file.readlines() if word.strip())
-
     spell.word_frequency.load_words(custom_dictionary)
 
     ignored_words = set()
@@ -44,27 +38,22 @@ def check_errors(text1):
     text = re.sub(r'(?<=\w)([^\w\s]+)', ' ', text)
 
     words = [word for word in text.split() if word.lower() not in ignored_words]
-    nonexistent_words_copy = spell.unknown(words)
 
-    nonexistent_words = []
-
-
-    for word in nonexistent_words_copy:
-        if spell.candidates(word):
-            continue
-        nonexistent_words.append(word)
+    nonexistent_words = [word for word in words if not spell.correction(word)]
 
     text1 = text
 
     return nonexistent_words
 
-def result(text):
+def result(text, custom_dictionary):
 
     nonexistent_words= check_errors(text)
 
     if nonexistent_words:
         return True
     return False
+
+
 
 
 
@@ -107,6 +96,12 @@ AND guides.question_answer notnull
 ;"""
 conn.execute(query)
 data = conn.fetch_all()
+
+custom_dictionary_file = "vocab.txt"
+with open(custom_dictionary_file, "r", encoding="utf-8") as file:
+    custom_dictionary = set(
+        word.strip() for word in file.readlines() if word.strip())
+
 i = 0
 for row in data:
     id = row[0]
