@@ -13,17 +13,14 @@ def deEmojify(text):
                                 u"\U00000450-\U00000450"
                                 u"\U00000452-\U0010FFFF"
                                 "]+", flags = re.UNICODE)
-    return regrex_pattern.sub(r'',text)
+    return regrex_pattern.sub(r' ээ ',text)
 
 def check_errors(text1):
     text = deEmojify(text1)
     if re.fullmatch(r'(\w){0,1}(\W){0,}', text):
         return True
 
-    tool = language_tool_python.LanguageTool('ru-RU')
 
-    spell = SpellChecker(language='ru')
-    spell.word_frequency.load_words(custom_dictionary)
 
     ignored_words = set()
     for word in text.split():
@@ -97,18 +94,20 @@ AND guides.question_answer notnull
 conn.execute(query)
 data = conn.fetch_all()
 
+spell = SpellChecker(language='ru')
+
 custom_dictionary_file = "vocab.txt"
 with open(custom_dictionary_file, "r", encoding="utf-8") as file:
     custom_dictionary = set(
         word.strip() for word in file.readlines() if word.strip())
+spell.word_frequency.load_words(custom_dictionary)
 
-i = 0
+
+
 for row in data:
     id = row[0]
     text = row[1]
-    print(i)
-    i+=1
-    if result(text):
+    if result(text, custom_dictionary):
         print(id, ' ', text)
 
 
